@@ -1,0 +1,232 @@
+<!DOCTYPE html><html lang="en"><head><meta http-equiv="Content-type" content="text/html; charset=utf-8"><meta name="theme-color" content="#3498db"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Tips for GraphQL and TypeScript"><title>GraphQL and TypeScript</title><meta property="og:title" content="GraphQL and TypeScript"><meta property="og:type" content="article"><meta property="og:url" content="https://quramy.github.io/gql-ts-talk"><meta property="og:description" content="Tips for GraphQL and TypeScript"><link href="vendor.7.8cb4488304a6cb2f9bcd.css" rel="stylesheet"><link href="main.3.07d38aaee381b6869417.css" rel="stylesheet"></head><body><div id="root"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" class="btn-sidebar" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"></path></svg><article id="webslides"><section class="aligncenter"><h1>GraphQL and TypeScript</h1></section><section class="aligncenter"><h2>About me</h2><ul><li>Yosuke Kurami (@Quramy)</li><li>❤️ TypeScript</li><li>Front-end tech adviser at FiNC</li></ul></section><section class="aligncenter"><h2>Agenda</h2><ul><li>GraphQL introduction</li><li>TypeScript + GraphQL client dev tips:<ul><li>Type generation</li><li>Ahead of time query parsing</li><li>Editor support</li></ul></li></ul></section><section class="aligncenter"><h3>What&#x27;s GraphQL ?</h3></section><section class="aligncenter"><h3>GraphQL is a query language for API</h3><ul><li>Describe what’s possible with a <strong>type system</strong> (schema)</li><li><strong>Ask for what you need</strong>, get exactly that</li><li>Get many resources in a single request</li></ul><p><a href="https://graphql.org/">https://graphql.org/</a></p></section><section class="aligncenter"><h4>Query example (GitHub v4 API)</h4><pre><code class="language-graphql">query MyQuery {
+  viewer {
+    repositories(first: 3, orderBy: { field: STARGAZERS, direction: DESC }) {
+      nodes {
+        url,
+        name,
+        description,
+        languages(first: 1) {
+          nodes {
+            name,
+          }
+        }
+      }
+    }
+  }
+}
+</code></pre></section><section class="aligncenter"><p><img src="https://i.gyazo.com/438943ab41d2aa3c1dc069e1882d6d7e.png" alt="Image from Gyazo"></p></section><section class="aligncenter"><h4>Query result</h4><pre><code class="language-javascript">{
+  &quot;data&quot;: {
+    &quot;viewer&quot;: {
+      &quot;repositories&quot;: {
+        &quot;nodes&quot;: [
+          {
+            &quot;url&quot;: &quot;https://github.com/Quramy/tsuquyomi&quot;,
+            &quot;name&quot;: &quot;tsuquyomi&quot;,
+            &quot;description&quot;: &quot;A Vim plugin for TypeScript&quot;,
+            &quot;languages&quot;: {
+              &quot;nodes&quot;: [
+                {
+                  &quot;name&quot;: &quot;Shell&quot;
+                }
+              ]
+            }
+          },
+          {
+            &quot;url&quot;: &quot;https://github.com/Quramy/lerna-yarn-workspaces-example&quot;,
+            &quot;name&quot;: &quot;lerna-yarn-workspaces-example&quot;,
+            &quot;description&quot;: &quot;How to build TypeScript mono-repo project with yarn and lerna&quot;,
+            &quot;languages&quot;: {
+              &quot;nodes&quot;: [
+                {
+                  &quot;name&quot;: &quot;TypeScript&quot;
+                }
+              ]
+            }
+          },
+          {
+            &quot;url&quot;: &quot;https://github.com/Quramy/typed-css-modules&quot;,
+            &quot;name&quot;: &quot;typed-css-modules&quot;,
+            &quot;description&quot;: &quot;Creates .d.ts files from css-modules .css files&quot;,
+            &quot;languages&quot;: {
+              &quot;nodes&quot;: [
+                {
+                  &quot;name&quot;: &quot;JavaScript&quot;
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+}
+</code></pre></section><section class="aligncenter"><h2>JavaScript client libs</h2><ul><li><strong>Apollo</strong> (powered by Meteor)</li><li>Relay (powered by Facebook)</li></ul></section><section class="aligncenter"><pre><code class="language-javascript">const clinet = new ApolloClient({
+  link: createHttpLink({
+    uri: &quot;https://api.github.com/graphql&quot;,
+    headers: {
+      Authorization: &quot;bearer XXXXXXXXXXXXXXX&quot;,
+    },
+  }),
+  cache: new InMemoryCache(),
+});
+
+const MY_QUERY = gql`query MyQurey { viewer { #...  } }`;
+
+const { data } = await clinet.query({
+  query: MY_QUERY,
+});
+
+console.log(data.viewer);
+</code></pre></section><section class="aligncenter"><h2>1. What&#x27;s type of query result ? 🤔</h2></section><section class="aligncenter"><h3>Generate TypeScript types from GraphQL queries</h3><p><a href="https://github.com/apollographql/apollo-tooling">https://github.com/apollographql/apollo-tooling</a></p></section><section class="aligncenter"><h4>i. Write queries</h4><pre><code class="language-javascript">import gql from &quot;graphql-tag&quot;;
+
+export const MY_QUERY = gql`
+  query MyQuery {
+    viewer {
+      repositories(first: 3, orderBy: { field: STARGAZERS, direction: DESC }) {
+        nodes {
+          url,
+          name,
+          description,
+          languages(first: 1) {
+            nodes {
+              name,
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+</code></pre></section><section class="aligncenter"><h4>ii. Run codegen command</h4><pre><code class="language-bash">$ npx apollo client:codegen --target typescript
+</code></pre></section><section class="aligncenter"><h4>and get generated types</h4><pre><code class="language-javascript">/* tslint:disable */
+// This file was automatically generated and should not be edited.
+
+// ====================================================
+// GraphQL query operation: MyQuery
+// ====================================================
+
+export interface MyQuery_viewer_repositories_nodes_languages_nodes {
+  __typename: &quot;Language&quot;;
+  /**
+   * The name of the current language.
+   */
+  name: string;
+}
+
+export interface MyQuery_viewer_repositories_nodes_languages {
+  __typename: &quot;LanguageConnection&quot;;
+  /**
+   * A list of nodes.
+   */
+  nodes: (MyQuery_viewer_repositories_nodes_languages_nodes | null)[] | null;
+}
+
+export interface MyQuery_viewer_repositories_nodes {
+  __typename: &quot;Repository&quot;;
+  /**
+   * The HTTP URL for this repository
+   */
+  url: any;
+  /**
+   * The name of the repository.
+   */
+  name: string;
+  /**
+   * The description of the repository.
+   */
+  description: string | null;
+  /**
+   * A list containing a breakdown of the language composition of the repository.
+   */
+  languages: MyQuery_viewer_repositories_nodes_languages | null;
+}
+
+export interface MyQuery_viewer_repositories {
+  __typename: &quot;RepositoryConnection&quot;;
+  /**
+   * A list of nodes.
+   */
+  nodes: (MyQuery_viewer_repositories_nodes | null)[] | null;
+}
+
+export interface MyQuery_viewer {
+  __typename: &quot;User&quot;;
+  /**
+   * A list of repositories that the user owns.
+   */
+  repositories: MyQuery_viewer_repositories;
+}
+
+export interface MyQuery {
+  /**
+   * The currently authenticated user.
+   */
+  viewer: MyQuery_viewer;
+}
+</code></pre></section><section class="aligncenter"><h4>iii. Use generated types</h4><pre><code class="language-javascript">import { MY_QUERY } from &quot;./query&quot;;
+import { MyQuery } from &quot;./__generated__/MyQuery&quot;;
+
+// ...
+
+// Use generated types as type parameter
+const { data } = await clinet.query&lt;MyQuery&gt;({
+  query: MY_QUERY,
+});
+
+console.log(data.viewer); 
+</code></pre><p>😄</p></section><section class="aligncenter"><h2>2. Ahead of time parsing</h2></section><section class="aligncenter"><h3>What does <code>gql</code> do ?</h3><pre><code class="language-javascript">import gql from &quot;graphql-tag&quot;;
+
+const MY_QUERY = gql`
+  query {
+    #...
+  }
+`;
+</code></pre></section><section class="aligncenter"><h3>It parses query to <strong>GraphQL AST at runtime</strong></h3><pre><code class="language-javascript">// parsed GraphQL AST
+const MY_QUERY = {
+  &quot;kind&quot;: &quot;Document&quot;,
+  &quot;definitions&quot;: [
+    {
+      &quot;kind&quot;: &quot;OperationDefinition&quot;,
+      &quot;operation&quot;: &quot;query&quot;,
+      &quot;name&quot;: {
+        &quot;kind&quot;: &quot;Name&quot;,
+        &quot;value&quot;: &quot;MyQuery&quot;
+      },
+      &quot;variableDefinitions&quot;: [],
+      &quot;directives&quot;: [],
+      &quot;selectionSet&quot;: { ... },
+    }
+  ]
+};
+</code></pre></section><section class="aligncenter"><h3>We want to parse in <strong>build procedure</strong></h3></section><section class="aligncenter"><h3>Use TypeScript custom transformer</h3><ul><li>Custom transformers <strong>invades TypeScript compilation</strong><ul><li>Public TypeScript API. But not available with <code>tsc</code> 😢</li></ul></li><li><a href="https://github.com/firede/ts-transform-graphql-tag">ts-transform-graphql-tag</a><ul><li>It transforms <code>gql</code> tagged template literals to GraphQL AST</li></ul></li></ul></section><section class="aligncenter"><h3>Example: with ts-loader</h3><pre><code class="language-javascript">const getTransformer = require(&quot;ts-transform-graphql-tag&quot;).getTransformer
+
+const config = {
+  // ...
+  module: {
+    rules: [
+      {
+        test: /\.tsx?$/,
+        loader: &quot;ts-loader&quot;,
+        options: {
+          // ... other loader&quot;s options
+          getCustomTransformers: () =&gt; ({ before: [getTransformer()] })
+        }
+      }
+    ]
+  }
+  // ...
+};
+</code></pre></section><section class="aligncenter"><h2>3. Editor support</h2></section><section class="aligncenter"><h3>Language service plugin</h3><ul><li>LS plugin extends TypeScript&#x27;s <strong>functions for editors</strong></li><li>Configurable with tsconfig.json 😄</li><li>You can customize editor behavior<ul><li>e.g. error checking, completion, etc...</li></ul></li></ul></section><section class="aligncenter"><h3>ts-graphql-plugin</h3><pre><code class="language-javascript">{
+  &quot;compilerOptions&quot;: {
+    &quot;plugins&quot;: [
+      {
+        &quot;name&quot;: &quot;ts-graphql-plugin&quot;,
+        &quot;schema&quot;: &quot;schema.json&quot;,
+        &quot;tag&quot;: &quot;gql&quot;
+      }
+    ],
+    &quot;target&quot;: &quot;es2015&quot;,
+    // ...
+  }
+}
+</code></pre></section><section class="aligncenter"><p><img src="https://raw.githubusercontent.com/Quramy/ts-graphql-plugin/master/capture.gif"></p></section><section class="aligncenter"><h2>Summary</h2><ul><li>Both TypeScript and GraphQL have static type system</li><li>So developer experience depends on static analysis tools</li></ul></section><section class="aligncenter"><h1>Thank you ! (and we&#x27;re hiring 😎 )</h1></section></article></div><script type="text/javascript" src="runtime.0140e9241a9efdb3c314.bundle.js"></script><script type="text/javascript" src="vendor.7.8cb4488304a6cb2f9bcd.bundle.js"></script><script type="text/javascript" src="main.3.07d38aaee381b6869417.bundle.js"></script></body></html>
