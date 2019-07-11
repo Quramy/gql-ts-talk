@@ -1,0 +1,26 @@
+meta:
+  url: https://quramy.github.io/gql-ts-talk
+  title: GraphQL and TypeScript 
+  thumbnail:
+  description: Tips for GraphQL and TypeScript
+  sns:
+    - twitter
+slide:
+  loop: false
+  sidebar: true
+  targetBlank: true
+  showIndex: true
+  isVertical: false
+  code:
+    languages:
+      - typescript
+      - javascript
+      - bash
+      - graphql
+    plugins: []
+    theme: default
+  chart: false
+  math: false
+extends:
+  js:
+  css: ./style.css

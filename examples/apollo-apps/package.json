@@ -1,0 +1,29 @@
+{
+  "name": "apollo-apps",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "generate": "apollo client:codegen --target=typescript",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "apollo": "2.1.8",
+    "core-js": "3.0.0-beta.11",
+    "html-webpack-plugin": "^3.2.0",
+    "ts-graphql-plugin": "^1.2.1",
+    "ts-loader": "^6.0.4",
+    "typescript": "^3.5.2",
+    "webpack": "^4.35.3"
+  },
+  "dependencies": {
+    "apollo-cache-inmemory": "^1.6.2",
+    "apollo-client": "^2.6.3",
+    "apollo-link-http": "^1.5.15",
+    "graphql": "^14.4.2",
+    "graphql-tag": "^2.10.1"
+  }
+}

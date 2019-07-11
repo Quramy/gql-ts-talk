@@ -1,0 +1,14 @@
+{
+  "private": true,
+  "scripts": {
+    "start": "fusuma start",
+    "deploy": "fusuma deploy",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Quramy",
+  "license": "MIT",
+  "devDependencies": {
+    "fusuma": "^1.10.2"
+  }
+}
